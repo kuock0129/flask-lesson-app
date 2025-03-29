@@ -25,7 +25,11 @@ This application includes an **interactive 3D scene** rendered using Babylon.js.
 ### Preview  
 Click below to view the 3D model in action:  
 
-![🔗 View 3D Scene](assets/3Dmodel.png)
+<p align="center">
+    <img src="assets/3Dmodel.png" width="30%" />
+    <img src="assets/3Dmodel_car.png" width="30%" />
+    <img src="assets/3Dmodel_dog.png" width="30%" />
+</p>
 
 ## Setup
 
@@ -71,13 +75,33 @@ Click below to view the 3D model in action:
 
 ## Running the Application
 
-1. Start the Flask app:
+1. Start the Flask app for the Lessons App:
 
     ```bash
     python app.py
     ```
 
-2. The application will be running at [http://127.0.0.1:5000/](http://127.0.0.1:5000/). Open the browser to access the front-end interface.
+    The application will be running at [http://127.0.0.1:5000/](http://127.0.0.1:5000/). Open the browser to access the front-end interface.
+
+2. Start a simple HTTP server to serve the 3D Model Viewer:
+
+    ```bash
+    python -m http.server 8000
+    ```
+
+    The viewer will be accessible at [http://localhost:8000/3Dview.html](http://localhost:8000/3Dview.html).
+
+3. To view the **Lessons App** (`index.html`), navigate to:
+
+    ```
+    http://127.0.0.1:5000/
+    ```
+
+4. To view the **3D Model Viewer** (`3Dview.html`), navigate to:
+
+    ```
+    http://localhost:8000/3Dview.html
+    ```
 
 ## Database Initialization
 
@@ -186,6 +210,7 @@ The frontend allows users to interact with the lessons:
 ### Files:
 
 - **index.html**: The HTML file containing the frontend interface.
+- **3Dview.html**: The HTML file for the Babylon.js 3D Model Viewer.
 - **app.py**: The Flask backend logic that handles API requests.
 
 ## Technologies Used
@@ -198,4 +223,3 @@ The frontend allows users to interact with the lessons:
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
