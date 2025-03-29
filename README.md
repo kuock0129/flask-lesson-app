@@ -8,6 +8,25 @@ A simple Flask application to manage lessons. It allows adding, editing, deletin
 - **Unique lesson titles** enforced at both database and API levels.
 - **Frontend** built with basic HTML and JavaScript to interact with the API.
 
+## 3D Visualization (Babylon.js)
+
+This application includes an **interactive 3D scene** rendered using Babylon.js. The scene features:
+
+- A **rotatable and zoomable view** using the mouse  
+- A **light source** that enhances visibility  
+- A **3D sphere** that acts as a placeholder model  
+- **Smooth animations and real-time rendering**  
+
+### Controls:
+- **Left Mouse Click + Drag** → Rotate the view  
+- **Scroll Wheel** → Zoom in/out  
+- **Right Mouse Click + Drag** → Pan the camera  
+
+### Preview  
+Click below to view the 3D model in action:  
+
+![🔗 View 3D Scene](assets/3Dmodel.png)
+
 ## Setup
 
 ### Prerequisites
