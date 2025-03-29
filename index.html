@@ -65,17 +65,20 @@
 
             fetch(API_URL, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ title, description })
             })
-            .then(response => response.json())
-            .then(() => {
-                document.getElementById("title").value = "";
-                document.getElementById("description").value = "";
-                loadLessons();
-            });
+            .then(response => response.json().then(data => ({ status: response.status, body: data })))
+            .then(result => {
+                if (result.status === 400) {
+                    alert(result.body.message);  // Show warning popup for duplicate lesson
+                } else {
+                    document.getElementById("title").value = "";
+                    document.getElementById("description").value = "";
+                    loadLessons();  // Reload the lesson list after adding
+                }
+            })
+            .catch(error => console.error("Error:", error));
         }
 
         function editLesson(id, oldTitle, oldDescription) {
@@ -106,7 +109,7 @@
         }
 
 
-        
+
         // Babylon.js 3D Scene
         window.addEventListener("DOMContentLoaded", function() {
             let canvas = document.getElementById("renderCanvas");
