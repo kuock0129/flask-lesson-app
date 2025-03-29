@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Babylon.js 3D Viewer</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-12 text-center mb-4">
+                <h1> 3D Model Viewer</h1>
+                <p class="lead">Upload your 3D model files (.glb, .gltf, .obj, .stl, .babylon)</p>
+            </div>
+        </div>
+        
+        <div class="row justify-content-center mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="fileInput" class="form-label">Choose a 3D file</label>
+                            <input type="file" class="form-control" id="fileInput" accept=".glb,.gltf,.obj,.stl,.babylon">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body p-0">
+                        <canvas id="renderCanvas" style="width: 100%; height: 600px; touch-action: none;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Babylon.js core -->
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <!-- Babylon.js loaders -->
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    
+    <script>
+        // DOM elements
+        const fileInput = document.getElementById('fileInput');
+        const renderCanvas = document.getElementById('renderCanvas');
+        
+        // Initialize Babylon.js
+        const engine = new BABYLON.Engine(renderCanvas, true);
+        const scene = createScene();
+        
+        // Run render loop
+        engine.runRenderLoop(() => {
+            scene.render();
+        });
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            engine.resize();
+        });
+        
+        function createScene() {
+            // Create scene
+            const scene = new BABYLON.Scene(engine);
+            
+            // Create camera
+            const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 3, 10, BABYLON.Vector3.Zero(), scene);
+            camera.attachControl(renderCanvas, true);
+            camera.lowerRadiusLimit = 5;
+            camera.upperRadiusLimit = 20;
+            
+            // Create lights
+            const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+            light.intensity = 0.7;
+            
+            // Create directional light for better shading
+            const dirLight = new BABYLON.DirectionalLight("dirLight", new BABYLON.Vector3(-1, -2, -1), scene);
+            dirLight.intensity = 0.5;
+            
+            // Create a default cube
+            const box = BABYLON.MeshBuilder.CreateBox("box", {size: 2}, scene);
+            
+            // Create material for the cube
+            const boxMaterial = new BABYLON.StandardMaterial("boxMaterial", scene);
+            boxMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
+            boxMaterial.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
+            box.material = boxMaterial;
+            
+            // Set background color
+            scene.clearColor = new BABYLON.Color3(0.76, 0.69, 0.57);
+            
+            // Create a skybox with gradient background
+            createGradientBackground(scene);
+            
+            return scene;
+        }
+        
+        // Create a custom gradient background
+        function createGradientBackground(scene) {
+            // Create a large sphere for the background
+            const skybox = BABYLON.MeshBuilder.CreateSphere("skyBox", {diameter: 1000, segments: 32}, scene);
+            
+            // Create a custom shader material for the gradient
+            const shaderMaterial = new BABYLON.ShaderMaterial(
+                "gradientMaterial",
+                scene,
+                {
+                    vertex: "gradient",
+                    fragment: "gradient",
+                },
+                {
+                    attributes: ["position", "normal"],
+                    uniforms: ["world", "worldView", "worldViewProjection", "view", "projection"]
+                }
+            );
+            
+            // Define shader code for vertex shader
+            BABYLON.Effect.ShadersStore["gradientVertexShader"] = `
+                precision highp float;
+                
+                // Attributes
+                attribute vec3 position;
+                attribute vec3 normal;
+                
+                // Uniforms
+                uniform mat4 world;
+                uniform mat4 worldViewProjection;
+                
+                // Varying
+                varying vec3 vPosition;
+                
+                void main(void) {
+                    vec4 worldPosition = world * vec4(position, 1.0);
+                    gl_Position = worldViewProjection * vec4(position, 1.0);
+                    vPosition = position;
+                }
+            `;
+            
+            // Define shader code for fragment shader
+            BABYLON.Effect.ShadersStore["gradientFragmentShader"] = `
+                precision highp float;
+                
+                varying vec3 vPosition;
+                
+                void main(void) {
+                    // Get normalized position from center
+                    vec3 normalizedPos = normalize(vPosition);
+                    
+                    // Define our colors
+                    vec3 topColor = vec3(0.5, 0.45, 0.35);     // Darker at top/edges
+                    vec3 bottomColor = vec3(0.76, 0.69, 0.57); // Lighter at center
+                    
+                    // Calculate gradient factor (based on y coordinate; higher = darker)
+                    float gradientFactor = pow(1.0 - abs(normalizedPos.y), 2.0);
+                    
+                    // Mix colors based on gradient factor
+                    vec3 finalColor = mix(topColor, bottomColor, gradientFactor);
+                    
+                    gl_FragColor = vec4(finalColor, 1.0);
+                }
+            `;
+            
+            // Apply material to skybox
+            skybox.material = shaderMaterial;
+            
+            // Flip normals to make the sphere render from inside
+            skybox.invert = true;
+            
+            // Ensure the skybox doesn't interfere with other objects
+            skybox.infiniteDistance = true;
+        }
+        
+        // Handle file upload directly on change
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length === 0) return;
+            
+            const file = fileInput.files[0];
+            const fileName = file.name;
+            const fileExtension = '.' + fileName.split('.').pop().toLowerCase();
+            
+            // Only dispose of objects that aren't the skybox
+            scene.meshes.forEach(mesh => {
+                if (mesh.name !== "skyBox") {
+                    mesh.dispose();
+                }
+            });
+            
+            // Create blob URL directly
+            const url = URL.createObjectURL(file);
+            
+            // Use the Append method
+            BABYLON.SceneLoader.Append("", url, scene, function() {
+                // Success callback
+                scene.createDefaultCamera(true, true, true);
+                
+                // Create lights again
+                const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+                light.intensity = 0.7;
+                const dirLight = new BABYLON.DirectionalLight("dirLight", new BABYLON.Vector3(-1, -2, -1), scene);
+                dirLight.intensity = 0.5;
+                
+                // Position camera appropriately
+                scene.activeCamera.alpha = Math.PI / 4;
+                scene.activeCamera.beta = Math.PI / 3;
+                scene.activeCamera.radius = 10;
+            }, null, null, fileExtension);
+        });
+    </script>
+</body>
+</html>
