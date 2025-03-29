@@ -18,8 +18,8 @@
         <input type="text" id="description" class="form-control mt-2" placeholder="Description">
         <button class="btn btn-success mt-2" onclick="addLesson()">Add Lesson</button>
 
-        <h2 class="mt-4">3D Model</h2>
-        <canvas id="renderCanvas"></canvas>
+        <h2 class="mt-4">3D Model Viewer</h2>
+        <canvas id="renderCanvas" width="1200" height="600"></canvas>
     </div>
 
     <script>
@@ -107,8 +107,6 @@
                 .then(() => loadLessons());
             }
         }
-
-
 
         // Babylon.js 3D Scene
         window.addEventListener("DOMContentLoaded", function() {
