@@ -14,7 +14,7 @@ This application includes an **interactive 3D scene** rendered using Babylon.js.
 
 - A **rotatable and zoomable view** using the mouse  
 - A **light source** that enhances visibility  
-- A **3D sphere** that acts as a placeholder model  
+- A **3D cube** that acts as a placeholder model  
 - **Smooth animations and real-time rendering**  
 
 ### Controls:
