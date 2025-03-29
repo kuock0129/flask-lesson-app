@@ -1,7 +1,8 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Api, Resource
 from flask_cors import CORS
+import os
 
 # Initialize the Flask application
 app = Flask(__name__)
@@ -68,6 +69,11 @@ class LessonListResource(Resource):
 # Register API Endpoints
 api.add_resource(LessonListResource, '/api/lessons')
 api.add_resource(LessonResource, '/api/lessons/<int:lesson_id>')
+
+# Serve the Frontend
+@app.route('/')
+def index():
+    return send_file('index.html')
 
 if __name__ == '__main__':
     with app.app_context():
