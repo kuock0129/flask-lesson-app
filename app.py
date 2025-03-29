@@ -19,7 +19,7 @@ api = Api(app)
 # Define the Lesson Model
 class Lesson(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
+    title = db.Column(db.String(100), unique=True, nullable=False)
     description = db.Column(db.String(255), nullable=False)
 
 # API Resource for handling single lesson operations (GET, PUT, DELETE)
@@ -61,10 +61,20 @@ class LessonListResource(Resource):
     # POST request: Add a new lesson
     def post(self):
         data = request.get_json()
+        existing_lesson = Lesson.query.filter_by(title=data['title']).first()
+
+        # Prevent duplicate lesson
+        if existing_lesson:
+            return {'message': 'Lesson with this title already exists!'}, 400  # Prevent duplicates
+
         new_lesson = Lesson(title=data['title'], description=data['description'])
         db.session.add(new_lesson)
-        db.session.commit()
-        return {'message': 'Lesson added'}, 201
+        try:
+            db.session.commit()
+            return {'message': 'Lesson added'}, 201
+        except Exception as e:
+            db.session.rollback()
+            return {'message': f'Error adding lesson: {str(e)}'}, 500
 
 # Register API Endpoints
 api.add_resource(LessonListResource, '/api/lessons')
